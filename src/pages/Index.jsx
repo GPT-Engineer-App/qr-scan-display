@@ -1,19 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Container, Text, VStack, Box, Heading, Flex } from "@chakra-ui/react";
-import QrReader from "react-qr-reader";
+import { Html5QrcodeScanner } from "html5-qrcode";
 
 const Index = () => {
   const [qrData, setQrData] = useState("No result");
 
-  const handleScan = (data) => {
-    if (data) {
-      setQrData(data);
-    }
-  };
+  useEffect(() => {
+    const scanner = new Html5QrcodeScanner(
+      "reader",
+      { fps: 10, qrbox: 250 },
+      /* verbose= */ false
+    );
 
-  const handleError = (err) => {
-    console.error(err);
-  };
+    scanner.render(
+      (decodedText, decodedResult) => {
+        setQrData(decodedText);
+      },
+      (errorMessage) => {
+        console.error(errorMessage);
+      }
+    );
+
+    return () => {
+      scanner.clear();
+    };
+  }, []);
 
   return (
     <Container centerContent maxW="container.md" height="100vh" display="flex" flexDirection="column" justifyContent="center" alignItems="center">
@@ -22,12 +33,7 @@ const Index = () => {
           <Heading as="h1" size="lg">QR Code Scanner</Heading>
         </Flex>
         <Box width="100%" p={4} borderWidth={1} borderRadius="md" boxShadow="md">
-          <QrReader
-            delay={300}
-            onError={handleError}
-            onScan={handleScan}
-            style={{ width: "100%" }}
-          />
+          <div id="reader" style={{ width: "100%" }}></div>
         </Box>
         <Box p={4} borderWidth={1} borderRadius="md" boxShadow="md" width="100%">
           <Text fontSize="lg">Scanned QR Code Content:</Text>
